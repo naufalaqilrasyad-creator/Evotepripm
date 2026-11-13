@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Voting Musyran PR IPM SMP Muhammadiyah Merauke</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Live Graphics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <!-- QRCode Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- QR Code Scanner / Reader Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ipmGreen: '#138A36',
+                        ipmGreenDark: '#0e692a',
+                        ipmYellow: '#FFCC00',
+                        ipmYellowDark: '#e5b800',
+                        ipmBg: '#F4F6F9',
+                    },
+                    fontFamily: {
+                        roboto: ['Roboto', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F4F6F9;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F4F6F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes spotlight {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
+        .animate-spotlight {
+            animation: spotlight 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-ipmBg min-h-screen text-slate-800 flex flex-col font-roboto antialiased">
+
+    <!-- PWA Service Worker & Manifest Script Injection -->
+    <script>
+        const manifest = {
+            name: "E-Voting PR IPM SMP Muhammadiyah Merauke",
+            short_name: "IPM Vote",
+            start_url: "./",
+            display: "standalone",
+            background_color: "#F4F6F9",
+            theme_color: "#138A36",
+            icons: [
+                { src: "https://placehold.co/192x192/138A36/FFFFFF?text=IPM", sizes: "192x192", type: "image/png" },
+                { src: "https://placehold.co/512x512/138A36/FFFFFF?text=IPM", sizes: "512x512", type: "image/png" }
+            ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const metaManifest = document.createElement('link');
+        metaManifest.rel = 'manifest';
+        metaManifest.href = manifestURL;
+        document.head.appendChild(metaManifest);
+
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', (e) => { self.skipWaiting(); });
+                self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
+                self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });
+            `;
+            const swBlob = new Blob([swCode], {type: 'text/javascript'});
+            const swURL = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swURL).catch(err => console.log('SW error:', err));
+        }
+    </script>
+
+    <!-- Top Countdown & Header Banner -->
+    <header class="bg-ipmGreen text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-ipmYellow text-ipmGreenDark font-black p-2 rounded-lg shadow text-xl">
+                    <i class="fa-solid fa-box-archive"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base sm:text-lg leading-tight">PR IPM SMP MUHAMMADIYAH MERAUKE</h1>
+                    <p class="text-xs text-ipmYellow font-medium">Musyawarah Ranting (MUSYRAN) Pemilihan Formatur</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="countdown-banner" class="bg-ipmGreenDark/80 px-3 py-1 rounded-full text-xs font-semibold tracking-wide border border-ipmYellow/30 flex items-center gap-2">
+                    <i class="fa-regular fa-clock text-ipmYellow"></i> Sisa Waktu: <span id="timer-display" class="font-mono text-ipmYellow">00:00:00</span>
+                </div>
+                <button onclick="openAdminLoginModal()" class="bg-ipmYellow hover:bg-ipmYellowDark text-slate-900 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock"></i> Admin Dasbor
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mode Preview Badge -->
+    <div id="preview-badge-container"></div>
+
+    <!-- Main Application Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 pb-24">
+        <!-- Initial Loader -->
+        <div id="app-loader" class="flex flex-col items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-16 w-16 border-4 border-ipmGreen border-t-ipmYellow mb-4"></div>
+            <p class="text-slate-600 font-medium text-sm">Menghubungkan ke Server Cloud & Sinkronisasi Data...</p>
+        </div>
+
+        <!-- Main Content View -->
+        <div id="app-view" class="hidden"></div>
+    </main>
+
+    <!-- Custom Modal Notification System -->
+    <div id="custom-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+            <div id="modal-header" class="bg-ipmGreen text-white px-6 py-4 flex items-center justify-between">
+                <h3 id="modal-title" class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-circle-info"></i> Notifikasi</h3>
+                <button onclick="closeModal()" class="text-white hover:text-ipmYellow text-lg transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6">
+                <div id="modal-body" class="text-slate-700 text-sm leading-relaxed mb-6"></div>
+                <div id="modal-extra-input-container" class="mb-6 hidden">
+                    <label id="modal-input-label" class="block text-xs font-bold text-slate-600 mb-2 uppercase"></label>
+                    <input type="text" id="modal-extra-input" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ipmGreen" placeholder="">
+                </div>
+                <div id="modal-footer" class="flex justify-end gap-3">
+                    <button id="modal-btn-cancel" onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold rounded-lg transition hidden">Batal</button>
+                    <button id="modal-btn-confirm" onclick="closeModal()" class="px-5 py-2 bg-ipmGreen hover:bg-ipmGreenDark text-white text-sm font-semibold rounded-lg transition shadow">Mengerti</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK & App Logic -->
+    <script type="module">
+        // ==========================================
+        // KONFIGURASI APLIKASI
+        // ==========================================
+        const IS_PREVIEW = true;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQM_QOBTrZnXZ7aLOXR_5G7sQ49hTybDg",
+  authDomain: "e-voting-pr-ipm-smpmuhmrk.firebaseapp.com",
+  projectId: "e-voting-pr-ipm-smpmuhmrk",
+  storageBucket: "e-voting-pr-ipm-smpmuhmrk.firebasestorage.app",
+  messagingSenderId: "143987307193",
+  appId: "1:143987307193:web:39eeeabe1cc10046e4a168",
+  measurementId: "G-NETBZGN7FH"
+        };
+
+        const INITIAL_CANDIDATES = [
+            { id: 'c1', nomor: 1, nama: 'Adnan Mahardyka', kelas: '8a', visi: 'Mewujudkan pelajar Muhammadiyah yang disiplin, religius, dan berprestasi unggul di era digital.', fotoBase64: 'https://placehold.co/300x400/138A36/FFFFFF?text=Adnan+8A', suara: 12 },
+            { id: 'c2', nomor: 2, nama: 'Kevin Tri Nugroho', kelas: '8e', visi: 'Aktif, inovatif, dan responsif dalam menyalurkan aspirasi seluruh siswa SMP Muhammadiyah Merauke.', fotoBase64: 'https://placehold.co/300x400/138A36/FFFFFF?text=Kevin+8E', suara: 15 },
+            { id: 'c3', nomor: 3, nama: 'Dafanny Aisyah Zakiya', kelas: '8f', visi: 'Meningkatkan kepemimpinan berlandaskan akhlakul karimah serta memperkuat ukhuwah Islamiyah.', fotoBase64: 'https://placehold.co/300x400/138A36/FFFFFF?text=Dafanny+8F', suara: 10 },
+            { id: 'c4', nomor: 4, nama: 'Hafist Syidhik Dhurahman Iswanto', kelas: '8f', visi: 'Membangun kader IPM yang tangguh, mandiri, dan berjiwa sosial tinggi bagi masyarakat.', fotoBase64: 'https://placehold.co/300x400/138A36/FFFFFF?text=Hafist+8F', suara: 8 },
+            { id: 'c5', nomor: 5, nama: 'Alif Mahadika A.L', kelas: '8a', visi: 'Mengoptimalkan peran IPM sebagai wadah kreativitas seni, olahraga, dan keilmuan siswa.', fotoBase64: 'https://placehold.co/300x400/138A36/FFFFFF?text=Alif+8A', suara: 6 },
+            { id: 'c6', nomor: 6, nama: 'Fatin Fauzia Putri Ramadhan', kelas: '8f', visi: 'Menjadikan IPM teladan kedisiplinan dan pelopor kebersihan di lingkungan sekolah.', fotoBase64: 'https://placehold.co/300x400/138A36/FFFFFF?text=Fatin+8F', suara: 9 },
+            { id: 'c7', nomor: 7, nama: 'Habibah Nur Jihan', kelas: '8a', visi: 'Meningkatkan kegiatan keagamaan rutin dan kajian interaktif yang menyenangkan.', fotoBase64: 'https://placehold.co/300x400/138A36/FFFFFF?text=Habibah+8A', suara: 11 },
+            { id: 'c8', nomor: 8, nama: 'Kayla Putri Syahta Aprili', kelas: '8e', visi: 'Mendorong semangat literasi dan kecintaan membaca di kalangan kader IPM.', fotoBase64: 'https://placehold.co/300x400/138A36/FFFFFF?text=Kayla+8E', suara: 7 },
+            { id: 'c9', nomor: 9, nama: 'Dzakiyyah Alifah Daud', kelas: '8b', visi: 'Menghadirkan program kerja yang aspiratif, transparan, dan berdampak nyata bagi seluruh siswa.', fotoBase64: 'https://placehold.co/300x400/138A36/FFFFFF?text=Dzakiyyah+8B', suara: 14 }
+        ];
+
+        const INITIAL_DPT = [
+            { id: 'IPM001', nama: 'Budi Santoso', kategori: 'Siswa', status: 'Belum', votedAt: '-' },
+            { id: 'IPM002', nama: 'Siti Aminah', kategori: 'Siswa', status: 'Belum', votedAt: '-' },
+            { id: 'IPM003', nama: 'Ahmad Fauzi', kategori: 'Siswa', status: 'Belum', votedAt: '-' },
+            { id: 'GURU01', nama: 'Ust. Rahman, S.Pd.', kategori: 'Pendidik', status: 'Belum', votedAt: '-' }
+        ];
+
+        let appState = {
+            candidates: [],
+            dpt: [],
+            settings: { endTime: new Date(Date.now() + 8 * 3600 * 1000).toISOString(), isLocked: false },
+            coreOfficers: { ketua: 'c2', sekretaris: 'c9', bendahara: 'c1' },
+            announcementStatus: { top3: 'belum', core: 'belum' },
+            currentUser: null,
+            selectedCandidates: [],
+            adminLoggedIn: false,
+            activeAdminTab: 'live',
+            timerInterval: null
+        };
+
+        // ==========================================
+        // WEB AUDIO API SOUND EFFECTS SYNTHESIZER
+        // ==========================================
+        let audioCtx = null;
+        let soundMuted = false;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        window.playBeep = function(freq = 440, type = 'sine', duration = 0.2) {
+            if (soundMuted) return;
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        window.playCountdownTone = function(step) {
+            if (step === 3) playBeep(300, 'square', 0.3);
+            else if (step === 2) playBeep(450, 'square', 0.3);
+            else if (step === 1) playBeep(600, 'square', 0.3);
+            else playBeep(880, 'triangle', 0.8);
+        }
+
+        window.playDrumRollSound = function(onComplete) {
+            if (soundMuted) { if(onComplete) onComplete(); return; }
+            try {
+                const ctx = getAudioContext();
+                let count = 0;
+                const interval = setInterval(() => {
+                    playBeep(120 + Math.random()*40, 'triangle', 0.08);
+                    count++;
+                    if (count > 15) {
+                        clearInterval(interval);
+                        playBeep(523.25, 'sine', 0.5); // C5 victory note
+                        if (onComplete) onComplete();
+                    }
+                }, 100);
+            } catch(e) { if(onComplete) onComplete(); }
+        }
+
+        window.playVictoryFanfare = function() {
+            if (soundMuted) return;
+            try {
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => playBeep(freq, 'sine', 0.4), idx * 200);
+                });
+            } catch(e) {}
+        }
+
+        window.toggleSoundMute = function() {
+            soundMuted = !soundMuted;
+            const btn = document.getElementById('sound-toggle-btn');
+            if (btn) {
+                btn.innerHTML = soundMuted ? '<i class="fa-solid fa-volume-xmark text-red-500"></i> Suara Mati' : '<i class="fa-solid fa-volume-high text-green-500"></i> Suara Hidup';
+            }
+        }
+
+        // ==========================================
+        // MODAL SYSTEM
+        // ==========================================
+        window.showModal = function(title, htmlContent, onConfirm = null, showCancel = false, confirmText = "Mengerti", inputConfig = null) {
+            document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-circle-info"></i> ${title}`;
+            document.getElementById('modal-body').innerHTML = htmlContent;
+            
+            const extraContainer = document.getElementById('modal-extra-input-container');
+            const extraInput = document.getElementById('modal-extra-input');
+            const inputLabel = document.getElementById('modal-input-label');
+            
+            if (inputConfig) {
+                extraContainer.classList.remove('hidden');
+                inputLabel.innerText = inputConfig.label;
+                extraInput.value = '';
+                extraInput.placeholder = inputConfig.placeholder || '';
+            } else {
+                extraContainer.classList.add('hidden');
+            }
+
+            const btnCancel = document.getElementById('modal-btn-cancel');
+            const btnConfirm = document.getElementById('modal-btn-confirm');
+            
+            if (showCancel) btnCancel.classList.remove('hidden');
+            else btnCancel.classList.add('hidden');
+
+            btnConfirm.innerText = confirmText;
+            btnConfirm.onclick = () => {
+                if (inputConfig && inputConfig.validator) {
+                    const val = extraInput.value.trim();
+                    if (!inputConfig.validator(val)) return;
+                }
+                closeModal();
+                if (onConfirm) onConfirm(extraInput.value.trim());
+            };
+
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        window.closeModal = function() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        function renderPreviewBadge() {
+            const container = document.getElementById('preview-badge-container');
+            if (IS_PREVIEW) {
+                container.innerHTML = `
+                    <div class="bg-amber-500 text-slate-900 px-4 py-2 text-xs font-bold text-center flex flex-wrap justify-center items-center gap-3 shadow-inner">
+                        <span><i class="fa-solid fa-triangle-exclamation"></i> MODE PREVIEW AKTIF (Simulasi In-Memory)</span>
+                        <span class="bg-white/80 px-2 py-0.5 rounded text-slate-800">ID DPT: <strong class="text-ipmGreenDark">IPM001</strong></span>
+                        <span class="bg-white/80 px-2 py-0.5 rounded text-slate-800">Password Admin: <strong class="text-ipmGreenDark">admin123</strong></span>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        async function initData() {
+            renderPreviewBadge();
+            if (IS_PREVIEW) {
+                const savedCandidates = localStorage.getItem('ipm_candidates');
+                const savedDpt = localStorage.getItem('ipm_dpt');
+                const savedSettings = localStorage.getItem('ipm_settings');
+                const savedOfficers = localStorage.getItem('ipm_officers');
+                const savedAnnStatus = localStorage.getItem('ipm_ann_status');
+
+                appState.candidates = savedCandidates ? JSON.parse(savedCandidates) : INITIAL_CANDIDATES;
+                appState.dpt = savedDpt ? JSON.parse(savedDpt) : INITIAL_DPT;
+                appState.settings = savedSettings ? JSON.parse(savedSettings) : { endTime: new Date(Date.now() + 8*3600*1000).toISOString(), isLocked: false };
+                appState.coreOfficers = savedOfficers ? JSON.parse(savedOfficers) : { ketua: 'c2', sekretaris: 'c9', bendahara: 'c1' };
+                appState.announcementStatus = savedAnnStatus ? JSON.parse(savedAnnStatus) : { top3: 'belum', core: 'belum' };
+
+                setTimeout(() => {
+                    document.getElementById('app-loader').classList.add('hidden');
+                    document.getElementById('app-view').classList.remove('hidden');
+                    startCountdownTimer();
+                    renderVoterLoginView();
+                }, 500);
+            }
+        }
+
+        function persistData() {
+            if (IS_PREVIEW) {
+                localStorage.setItem('ipm_candidates', JSON.stringify(appState.candidates));
+                localStorage.setItem('ipm_dpt', JSON.stringify(appState.dpt));
+                localStorage.setItem('ipm_settings', JSON.stringify(appState.settings));
+                localStorage.setItem('ipm_officers', JSON.stringify(appState.coreOfficers));
+                localStorage.setItem('ipm_ann_status', JSON.stringify(appState.announcementStatus));
+            }
+        }
+
+        function startCountdownTimer() {
+            if (appState.timerInterval) clearInterval(appState.timerInterval);
+            const updateTimer = () => {
+                const now = new Date().getTime();
+                const target = new Date(appState.settings.endTime).getTime();
+                const distance = target - now;
+                const timerDisplay = document.getElementById('timer-display');
+                if (!timerDisplay) return;
+
+                if (distance < 0) {
+                    timerDisplay.innerText = "WAKTU PEMILIHAN SELESAI";
+                    return;
+                }
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                timerDisplay.innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            };
+            updateTimer();
+            appState.timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // ==========================================
+        // 1. HALAMAN PEMILIH (BILIK SUARA)
+        // ==========================================
+        window.renderVoterLoginView = function() {
+            const view = document.getElementById('app-view');
+            view.innerHTML = `
+                <div class="max-w-md mx-auto mt-10 glass-card p-8 rounded-3xl shadow-xl border-t-4 border-ipmGreen animate-fade-in">
+                    <div class="text-center mb-6">
+                        <div class="inline-flex bg-ipmGreen/10 text-ipmGreen p-4 rounded-full text-3xl mb-3 shadow-inner">
+                            <i class="fa-solid fa-person-booth"></i>
+                        </div>
+                        <h2 class="text-2xl font-black text-slate-900">Bilik Suara Digital</h2>
+                        <p class="text-xs text-slate-500 mt-1">Musyran PR IPM SMP Muhammadiyah Merauke</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">ID Pemilih / NIS</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-id-card"></i></span>
+                                <input type="text" id="voter-id-input" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-ipmGreen focus:outline-none uppercase" placeholder="Contoh: IPM001">
+                            </div>
+                            <p id="login-error-msg" class="text-xs text-red-600 font-semibold mt-1.5 hidden"></p>
+                        </div>
+                        <button onclick="handleVoterLogin()" class="w-full bg-ipmGreen hover:bg-ipmGreenDark text-white font-bold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                            <span>Masuk Bilik Suara</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <div class="relative flex py-2 items-center">
+                            <div class="flex-grow border-t border-slate-200"></div>
+                            <span class="flex-shrink mx-4 text-slate-400 text-xs">Atau Scan QR Code DPT</span>
+                            <div class="flex-grow border-t border-slate-200"></div>
+                        </div>
+                        <button onclick="openQrScannerModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-qrcode"></i> Scan QR Kartu Pemilih
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.handleVoterLogin = function(scannedId = null) {
+            const idInput = scannedId || document.getElementById('voter-id-input').value.trim().toUpperCase();
+            const errEl = document.getElementById('login-error-msg');
+            if (!idInput) {
+                if(errEl) { errEl.innerText = "Masukkan ID Pemilih dengan benar!"; errEl.classList.remove('hidden'); }
+                return;
+            }
+            const voter = appState.dpt.find(d => d.id.toUpperCase() === idInput);
+            if (!voter) {
+                if(errEl) { errEl.innerText = "ID Pemilih tidak terdaftar di DPT!"; errEl.classList.remove('hidden'); }
+                return;
+            }
+            if (voter.status === 'Sudah') {
+                if(errEl) { errEl.innerText = "ID Pemilih ini telah digunakan untuk memilih!"; errEl.classList.remove('hidden'); }
+                return;
+            }
+            appState.currentUser = voter;
+            appState.selectedCandidates = [];
+            renderBallotPaperView();
+        }
+
+        window.openQrScannerModal = function() {
+            showModal("Scan QR Code DPT", `
+                <div id="reader" class="w-full rounded-xl overflow-hidden mb-3"></div>
+                <p class="text-xs text-center text-slate-500">Arahkan kamera ke QR Code Kartu Pemilih Anda.</p>
+            `, null, true, "Tutup");
+
+            setTimeout(() => {
+                const html5QrCode = new Html5Qrcode("reader");
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText) => {
+                        html5QrCode.stop().catch(err => {});
+                        closeModal();
+                        handleVoterLogin(decodedText);
+                    },
+                    (errorMessage) => {}
+                ).catch(err => {
+                    document.getElementById('reader').innerHTML = `<p class="text-red-500 text-xs text-center p-4">Kamera tidak dapat diakses. Gunakan input ID manual.</p>`;
+                });
+            }, 300);
+        }
+
+        window.renderBallotPaperView = function() {
+            const view = document.getElementById('app-view');
+            view.innerHTML = `
+                <div class="max-w-6xl mx-auto animate-fade-in">
+                    <div class="bg-white rounded-2xl shadow-md p-6 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-l-4 border-ipmYellow">
+                        <div>
+                            <span class="bg-ipmGreen/10 text-ipmGreen font-bold px-3 py-1 rounded-full text-xs">Pemilih: ${appState.currentUser.nama} (${appState.currentUser.id})</span>
+                            <h2 class="text-xl font-black text-slate-900 mt-2">Surat Suara Pemilihan Formatur</h2>
+                            <p class="text-xs text-slate-500">Silakan pilih <strong class="text-ipmGreenDark">TEPAT 3 (TIGA)</strong> calon formatur pilihan Anda.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-ipmBg px-4 py-2 rounded-xl text-right">
+                                <span class="text-xs text-slate-500 block">Pilihan Terpilih</span>
+                                <strong id="selected-counter" class="text-lg font-black text-ipmGreen">0 / 3</strong>
+                            </div>
+                            <button onclick="submitVoteAction()" id="submit-vote-btn" disabled class="bg-slate-300 text-slate-500 font-bold px-6 py-3 rounded-xl shadow cursor-not-allowed transition">
+                                <i class="fa-solid fa-paper-plane mr-1"></i> Kirim Suara
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${appState.candidates.map(c => `
+                            <div id="card-${c.id}" class="glass-card rounded-2xl overflow-hidden shadow-md transition-all duration-300 border-2 border-transparent flex flex-col justify-between">
+                                <div>
+                                    <div class="relative h-56 bg-slate-200 overflow-hidden">
+                                        <img src="${c.fotoBase64}" alt="${c.nama}" class="w-full h-full object-cover object-top" onerror="this.src='https://placehold.co/300x400/138A36/FFFFFF?text=Foto'">
+                                        <span class="absolute top-3 left-3 bg-ipmYellow text-slate-900 font-black px-3 py-1 rounded-full text-xs shadow">No. Urut #${c.nomor}</span>
+                                        <span class="absolute top-3 right-3 bg-ipmGreen text-white font-bold px-3 py-1 rounded-full text-xs shadow">Kelas ${c.kelas.toUpperCase()}</span>
+                                    </div>
+                                    <div class="p-5">
+                                        <h3 class="font-bold text-lg text-slate-900 mb-1">${c.nama}</h3>
+                                        <p class="text-xs text-slate-600 italic line-clamp-3 bg-slate-50 p-2.5 rounded-lg border border-slate-200">"${c.visi}"</p>
+                                    </div>
+                                </div>
+                                <div class="p-5 pt-0">
+                                    <button onclick="toggleSelectCandidate('${c.id}')" id="btn-select-${c.id}" class="w-full py-2.5 rounded-xl font-bold text-sm transition shadow-sm border border-ipmGreen text-ipmGreen hover:bg-ipmGreen hover:text-white">
+                                        <i class="fa-solid fa-check mr-1"></i> COBLOS
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.toggleSelectCandidate = function(id) {
+            const index = appState.selectedCandidates.indexOf(id);
+            const card = document.getElementById(`card-${id}`);
+            const btn = document.getElementById(`btn-select-${id}`);
+
+            if (index > -1) {
+                appState.selectedCandidates.splice(index, 1);
+                card.classList.remove('border-ipmGreen', 'shadow-xl', 'bg-ipmGreen/5');
+                btn.className = "w-full py-2.5 rounded-xl font-bold text-sm transition shadow-sm border border-ipmGreen text-ipmGreen hover:bg-ipmGreen hover:text-white";
+                btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> COBLOS';
+            } else {
+                if (appState.selectedCandidates.length >= 3) {
+                    showModal("Batas Pilihan", "Anda hanya diperbolehkan memilih <strong class='text-ipmGreen'>TEPAT 3 KANDIDAT</strong>.");
+                    return;
+                }
+                appState.selectedCandidates.push(id);
+                card.classList.add('border-ipmGreen', 'shadow-xl', 'bg-ipmGreen/5');
+                btn.className = "w-full py-2.5 rounded-xl font-bold text-sm transition shadow-sm bg-ipmGreen text-white hover:bg-ipmGreenDark";
+                btn.innerHTML = '<i class="fa-solid fa-square-check mr-1"></i> TERPILIH';
+            }
+
+            document.getElementById('selected-counter').innerText = `${appState.selectedCandidates.length} / 3`;
+            const submitBtn = document.getElementById('submit-vote-btn');
+            if (appState.selectedCandidates.length === 3) {
+                submitBtn.disabled = false;
+                submitBtn.className = "bg-ipmGreen hover:bg-ipmGreenDark text-white font-bold px-6 py-3 rounded-xl shadow cursor-pointer transition animate-pulse";
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = "bg-slate-300 text-slate-500 font-bold px-6 py-3 rounded-xl shadow cursor-not-allowed transition";
+            }
+        }
+
+        window.submitVoteAction = function() {
+            if (appState.selectedCandidates.length !== 3) return;
+            const names = appState.selectedCandidates.map(id => appState.candidates.find(c => c.id === id).nama).join(', ');
+
+            showModal("Konfirmasi Pilihan Suara", `
+                <p class="mb-3">Anda akan mengirimkan suara final untuk 3 formatur berikut:</p>
+                <div class="bg-slate-100 p-3 rounded-xl text-xs font-bold text-ipmGreenDark mb-3">${names}</div>
+                <p class="text-xs text-red-600 font-semibold">Pilihan bersifat final dan tidak dapat diubah!</p>
+            `, () => {
+                appState.selectedCandidates.forEach(id => {
+                    const cand = appState.candidates.find(c => c.id === id);
+                    if (cand) cand.suara += 1;
+                });
+                const voterIndex = appState.dpt.findIndex(d => d.id === appState.currentUser.id);
+                if (voterIndex > -1) {
+                    appState.dpt[voterIndex].status = 'Sudah';
+                    appState.dpt[voterIndex].votedAt = new Date().toLocaleTimeString('id-ID');
+                }
+                persistData();
+                renderSuccessView();
+            }, true, "Ya, Kirim Suara");
+        }
+
+        window.renderSuccessView = function() {
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            playVictoryFanfare();
+            const view = document.getElementById('app-view');
+            view.innerHTML = `
+                <div class="max-w-md mx-auto mt-10 glass-card p-8 rounded-3xl shadow-xl text-center animate-fade-in border-t-4 border-ipmGreen">
+                    <div class="inline-flex bg-ipmGreen text-white p-5 rounded-full text-4xl mb-4 shadow-lg animate-bounce">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Suara Berhasil Direkam!</h2>
+                    <p class="text-sm text-slate-600 mt-2 mb-6">Terima kasih telah berpartisipasi dalam Musyran PR IPM SMP Muhammadiyah Merauke.</p>
+                    <button onclick="renderVoterLoginView()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow transition">
+                        Selesai & Keluar Bilik
+                    </button>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 2. HALAMAN ADMIN & DASBOR REKAPITULASI
+        // ==========================================
+        window.openAdminLoginModal = function() {
+            showModal("Login Administrator", `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Password Admin</label>
+                        <input type="password" id="admin-pass-input" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-ipmGreen focus:outline-none" placeholder="Masukkan password admin">
+                    </div>
+                </div>
+            `, () => {
+                const pass = document.getElementById('admin-pass-input').value.trim();
+                if (pass === 'admin123') {
+                    appState.adminLoggedIn = true;
+                    renderAdminDashboard();
+                } else {
+                    showModal("Gagal Login", "Password admin salah! Gunakan: admin123");
+                }
+            }, true, "Masuk Dasbor");
+        }
+
+        window.renderAdminDashboard = function() {
+            const view = document.getElementById('app-view');
+            view.innerHTML = `
+                <div class="max-w-7xl mx-auto animate-fade-in">
+                    <div class="bg-white rounded-2xl shadow-md p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div>
+                            <span class="bg-ipmYellow/20 text-ipmGreenDark font-bold px-3 py-1 rounded-full text-xs">Panel Administrator</span>
+                            <h2 class="text-xl font-black text-slate-900 mt-1">Dasbor Rekapitulasi E-Voting</h2>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="switchAdminTab('live')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${appState.activeAdminTab === 'live' ? 'bg-ipmGreen text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}"><i class="fa-solid fa-chart-pie"></i> Hasil Live & Podium</button>
+                            <button onclick="switchAdminTab('paslon')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${appState.activeAdminTab === 'paslon' ? 'bg-ipmGreen text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}"><i class="fa-solid fa-users-rectangle"></i> Data Paslon</button>
+                            <button onclick="switchAdminTab('dpt')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${appState.activeAdminTab === 'dpt' ? 'bg-ipmGreen text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}"><i class="fa-solid fa-address-book"></i> Daftar Hadir (DPT)</button>
+                            <button onclick="switchAdminTab('announcement')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${appState.activeAdminTab === 'announcement' ? 'bg-ipmGreen text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}"><i class="fa-solid fa-bullhorn text-ipmYellow"></i> Pengaturan Pengumuman</button>
+                            <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${appState.activeAdminTab === 'settings' ? 'bg-ipmGreen text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}"><i class="fa-solid fa-gear"></i> Pengaturan & BAP</button>
+                        </div>
+                    </div>
+                    <div id="admin-tab-content"></div>
+                </div>
+            `;
+            loadAdminTabContent();
+        }
+
+        window.switchAdminTab = function(tab) {
+            appState.activeAdminTab = tab;
+            renderAdminDashboard();
+        }
+
+        function loadAdminTabContent() {
+            const container = document.getElementById('admin-tab-content');
+            if (appState.activeAdminTab === 'live') renderTabLive(container);
+            else if (appState.activeAdminTab === 'paslon') renderTabPaslon(container);
+            else if (appState.activeAdminTab === 'dpt') renderTabDpt(container);
+            else if (appState.activeAdminTab === 'announcement') renderTabAnnouncementSettings(container);
+            else if (appState.activeAdminTab === 'settings') renderTabSettings(container);
+        }
+
+        function renderTabLive(container) {
+            const totalVoters = appState.dpt.length;
+            const votedCount = appState.dpt.filter(d => d.status === 'Sudah').length;
+            const percentage = totalVoters > 0 ? ((votedCount / totalVoters) * 100).toFixed(1) : 0;
+            const totalSuaraMasuk = appState.candidates.reduce((sum, c) => sum + c.suara, 0);
+
+            const sortedCandidates = [...appState.candidates].sort((a, b) => b.suara - a.suara);
+            const p1 = sortedCandidates[0];
+            const p2 = sortedCandidates[1];
+            const p3 = sortedCandidates[2];
+            const isTie = p1 && p2 && p1.suara === p2.suara;
+
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="glass-card p-5 rounded-2xl shadow-sm border-l-4 border-ipmGreen">
+                            <span class="text-xs text-slate-500 font-bold uppercase">Total Suara Masuk</span>
+                            <h3 class="text-3xl font-black text-slate-900 mt-1">${totalSuaraMasuk} <span class="text-xs font-normal text-slate-500">suara</span></h3>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl shadow-sm border-l-4 border-ipmYellow">
+                            <span class="text-xs text-slate-500 font-bold uppercase">Partisipasi Pemilih</span>
+                            <h3 class="text-3xl font-black text-slate-900 mt-1">${votedCount} / ${totalVoters} <span class="text-xs font-normal text-slate-500">(${percentage}%)</span></h3>
+                            <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
+                                <div class="bg-ipmGreen h-2 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl shadow-sm border-l-4 border-slate-800 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs text-slate-500 font-bold uppercase">Keluar Dasbor</span>
+                                <h3 class="text-lg font-black text-slate-900 mt-1">Bilik Suara Utama</h3>
+                            </div>
+                            <button onclick="renderVoterLoginView()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold transition">Kembali</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 glass-card p-6 rounded-2xl shadow-sm">
+                            <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-trophy text-amber-500"></i> Podium 3 Besar Formatur</h3>
+                            ${isTie ? `<div class="bg-amber-100 text-amber-800 p-3 rounded-xl text-xs font-semibold mb-4">Perhatian: Terjadi suara seri pada peringkat teratas!</div>` : ''}
+                            
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between mt-4">
+                                    <div>
+                                        <span class="bg-slate-300 text-slate-800 font-black px-2.5 py-1 rounded-full text-xs">Rank #2</span>
+                                        <img src="${p2?.fotoBase64 || ''}" class="w-20 h-20 object-cover rounded-full mx-auto my-3 border-2 border-slate-400">
+                                        <h4 class="font-bold text-sm text-slate-900">${p2?.nama || '-'}</h4>
+                                        <p class="text-xs text-slate-500">Kelas ${p2?.kelas.toUpperCase() || '-'}</p>
+                                    </div>
+                                    <div class="mt-3 bg-ipmGreen/10 text-ipmGreen font-black text-sm py-1.5 rounded-lg">${p2?.suara || 0} Suara</div>
+                                </div>
+                                <div class="bg-ipmYellow/10 p-4 rounded-xl border-2 border-ipmYellow flex flex-col justify-between shadow-md">
+                                    <div>
+                                        <span class="bg-ipmYellow text-slate-900 font-black px-3 py-1 rounded-full text-xs shadow">Rank #1 🏆</span>
+                                        <img src="${p1?.fotoBase64 || ''}" class="w-24 h-24 object-cover rounded-full mx-auto my-3 border-4 border-ipmYellow shadow">
+                                        <h4 class="font-bold text-base text-slate-900">${p1?.nama || '-'}</h4>
+                                        <p class="text-xs text-slate-500">Kelas ${p1?.kelas.toUpperCase() || '-'}</p>
+                                    </div>
+                                    <div class="mt-3 bg-ipmYellow text-slate-900 font-black text-base py-2 rounded-lg shadow">${p1?.suara || 0} Suara</div>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between mt-6">
+                                    <div>
+                                        <span class="bg-amber-700 text-white font-black px-2.5 py-1 rounded-full text-xs">Rank #3</span>
+                                        <img src="${p3?.fotoBase64 || ''}" class="w-20 h-20 object-cover rounded-full mx-auto my-3 border-2 border-amber-700">
+                                        <h4 class="font-bold text-sm text-slate-900">${p3?.nama || '-'}</h4>
+                                        <p class="text-xs text-slate-500">Kelas ${p3?.kelas.toUpperCase() || '-'}</p>
+                                    </div>
+                                    <div class="mt-3 bg-ipmGreen/10 text-ipmGreen font-black text-sm py-1.5 rounded-lg">${p3?.suara || 0} Suara</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-lg text-slate-900 mb-3 flex items-center gap-2"><i class="fa-solid fa-user-tie text-ipmGreen"></i> Penetapan 3 Inti</h3>
+                                <p class="text-xs text-slate-500 mb-4">Pilih jabatan inti pimpinan dari daftar formatur:</p>
+                                <div class="space-y-3 text-xs">
+                                    <div>
+                                        <label class="font-bold text-slate-700 block mb-1">Ketua Umum</label>
+                                        <select id="select-ketua" onchange="updateCoreOfficer('ketua', this.value)" class="w-full border border-slate-300 rounded-lg p-2 font-medium bg-white">
+                                            <option value="">-- Pilih Ketua Umum --</option>
+                                            ${appState.candidates.map(c => `<option value="${c.id}" ${appState.coreOfficers.ketua === c.id ? 'selected' : ''}>${c.nama} (${c.kelas.toUpperCase()})</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="font-bold text-slate-700 block mb-1">Sekretaris Umum</label>
+                                        <select id="select-sekretaris" onchange="updateCoreOfficer('sekretaris', this.value)" class="w-full border border-slate-300 rounded-lg p-2 font-medium bg-white">
+                                            <option value="">-- Pilih Sekretaris Umum --</option>
+                                            ${appState.candidates.map(c => `<option value="${c.id}" ${appState.coreOfficers.sekretaris === c.id ? 'selected' : ''}>${c.nama} (${c.kelas.toUpperCase()})</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="font-bold text-slate-700 block mb-1">Bendahara Umum</label>
+                                        <select id="select-bendahara" onchange="updateCoreOfficer('bendahara', this.value)" class="w-full border border-slate-300 rounded-lg p-2 font-medium bg-white">
+                                            <option value="">-- Pilih Bendahara Umum --</option>
+                                            ${appState.candidates.map(c => `<option value="${c.id}" ${appState.coreOfficers.bendahara === c.id ? 'selected' : ''}>${c.nama} (${c.kelas.toUpperCase()})</option>`).join('')}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 bg-ipmGreen/10 p-3 rounded-xl text-center text-xs font-semibold text-ipmGreenDark">
+                                Status: Sinkronisasi real-time aktif.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="glass-card p-6 rounded-2xl shadow-sm">
+                            <h3 class="font-bold text-base text-slate-900 mb-4">Grafik Batang Perolehan Suara</h3>
+                            <canvas id="barChart" height="200"></canvas>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl shadow-sm">
+                            <h3 class="font-bold text-base text-slate-900 mb-4">Grafik Donat Persentase Suara</h3>
+                            <div class="max-w-xs mx-auto">
+                                <canvas id="doughnutChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                const labels = appState.candidates.map(c => `No.${c.nomor} ${c.nama}`);
+                const dataVotes = appState.candidates.map(c => c.suara);
+                const bgColors = ['#138A36', '#FFCC00', '#3b82f6', '#ec4899', '#8b5cf6', '#f97316', '#06b6d4', '#84cc16', '#64748b'];
+
+                const ctxBar = document.getElementById('barChart').getContext('2d');
+                new Chart(ctxBar, {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ label: 'Jumlah Suara', data: dataVotes, backgroundColor: '#138A36', borderRadius: 6 }] },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+
+                const ctxDonut = document.getElementById('doughnutChart').getContext('2d');
+                new Chart(ctxDonut, {
+                    type: 'doughnut',
+                    data: { labels: labels, datasets: [{ data: dataVotes, backgroundColor: bgColors }] },
+                    options: { responsive: true }
+                });
+            }, 100);
+        }
+
+        window.updateCoreOfficer = function(role, val) {
+            appState.coreOfficers[role] = val;
+            persistData();
+        }
+
+        // ==========================================
+        // 3. TAB PENGATURAN PENGUMUMAN & KONTROL
+        // ==========================================
+        function renderTabAnnouncementSettings(container) {
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Pengumuman 3 Besar -->
+                    <div class="glass-card p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-base text-slate-900"><i class="fa-solid fa-trophy text-amber-500 mr-2"></i> Pengumuman 3 Formatur Teratas</h3>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold ${appState.announcementStatus.top3 === 'selesai' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'}">${appState.announcementStatus.top3.toUpperCase()}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mb-6 leading-relaxed">Menampilkan panggung/podium juara 1, 2, dan 3 dengan animasi cinematic, countdown, drum roll, dan efek confetti.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="launchTop3Announcement()" class="flex-1 bg-ipmGreen hover:bg-ipmGreenDark text-white font-bold py-3 rounded-xl text-xs transition shadow flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play"></i> Mulai Pengumuman 3 Besar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pengumuman 3 Inti -->
+                    <div class="glass-card p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-base text-slate-900"><i class="fa-solid fa-user-tie text-ipmGreen mr-2"></i> Pelantikan 3 Inti PR IPM</h3>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold ${appState.announcementStatus.core === 'selesai' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'}">${appState.announcementStatus.core.toUpperCase()}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mb-6 leading-relaxed">Pengumuman resmi Ketua, Sekretaris, dan Bendahara Umum dengan konsep pelantikan organisasi resmi.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="confirmLaunchCoreAnnouncement()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs transition shadow flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play"></i> Mulai Pelantikan 3 Inti
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // FITUR PENGUMUMAN 3 FORMATUR (CINEMATIC)
+        // ==========================================
+        let annTop3State = { step: 0, timer: null, paused: false };
+
+        window.launchTop3Announcement = function() {
+            annTop3State = { step: 0, timer: null, paused: false };
+            const totalSuara = appState.candidates.reduce((sum, c) => sum + c.suara, 0);
+            const sorted = [...appState.candidates].sort((a, b) => b.suara - a.suara);
+            const p1 = sorted[0];
+            const p2 = sorted[1];
+            const p3 = sorted[2];
+            const isTie = p1 && p2 && p1.suara === p2.suara;
+
+            const view = document.getElementById('app-view');
+            view.innerHTML = `
+                <div id="announcement-theater" class="fixed inset-0 z-50 bg-slate-950 text-white flex flex-col justify-between p-6 select-none overflow-y-auto">
+                    <!-- Theater Header Control Bar -->
+                    <div class="flex justify-between items-center max-w-7xl mx-auto w-full bg-slate-900/80 p-4 rounded-2xl border border-slate-800 backdrop-blur">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-ipmYellow text-slate-950 font-black px-3 py-1 rounded-lg text-xs">PENGUMUMAN RESMI</div>
+                            <h2 class="font-bold text-sm sm:text-base">Musyran PR IPM SMP Muhammadiyah Merauke</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="sound-toggle-btn" onclick="toggleSoundMute()" class="bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-volume-high text-green-500"></i> Suara Hidup</button>
+                            <button onclick="top3AnnPauseResume()" id="btn-pause-resume" class="bg-amber-600 hover:bg-amber-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-pause"></i> Jeda</button>
+                            <button onclick="top3AnnRepeat()" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-rotate-right"></i> Ulangi</button>
+                            <button onclick="toggleFullScreen()" class="bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition"><i class="fa-solid fa-expand"></i></button>
+                            <button onclick="exitAnnouncementTheater()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-xs font-bold transition"><i class="fa-solid fa-xmark"></i> Akhiri</button>
+                        </div>
+                    </div>
+
+                    <!-- Theater Stage Body -->
+                    <div id="theater-body" class="flex-grow flex flex-col items-center justify-center max-w-5xl mx-auto w-full my-6 text-center">
+                        <!-- Content dynamically updated -->
+                    </div>
+
+                    <!-- Theater Footer Info -->
+                    <div class="text-center text-xs text-slate-500">
+                        Total Suara Sah: <strong class="text-ipmYellow">${totalSuara} Suara</strong> | Data Resmi Terverifikasi Real-Time
+                    </div>
+                </div>
+            `;
+
+            runTop3Step(0, sorted, totalSuara, isTie);
+        }
+
+        function runTop3Step(step, sorted, totalSuara, isTie) {
+            annTop3State.step = step;
+            const body = document.getElementById('theater-body');
+            if (!body) return;
+
+            if (step === 0) {
+                // Opening Intro
+                playBeep(440, 'sine', 0.5);
+                body.innerHTML = `
+                    <div class="animate-fade-in space-y-4">
+                        <div class="inline-block bg-ipmGreen text-white px-6 py-2 rounded-full font-bold text-sm mb-2 shadow-lg">MUSYAWARAH RANTING (MUSYRAN)</div>
+                        <h1 class="text-4xl sm:text-6xl font-black text-ipmYellow tracking-tight">HASIL PEMILIHAN FORMATUR</h1>
+                        <p class="text-slate-400 text-sm max-w-xl mx-auto">PR IPM SMP Muhammadiyah Merauke Periode Muktamar Mendatang</p>
+                    </div>
+                `;
+                annTop3State.timer = setTimeout(() => { if(!annTop3State.paused) runTop3Step(1, sorted, totalSuara, isTie); }, 4000);
+            } else if (step === 1) {
+                // Countdown 3, 2, 1
+                runCountdownAnimation(3, () => {
+                    if(!annTop3State.paused) runTop3Step(2, sorted, totalSuara, isTie);
+                });
+            } else if (step === 2) {
+                // Peringkat Ketiga (Rank 3)
+                const c3 = sorted[2];
+                const pct3 = totalSuara > 0 ? ((c3.suara / totalSuara) * 100).toFixed(1) : 0;
+                playDrumRollSound();
+                body.innerHTML = `
+                    <div class="animate-fade-in space-y-6">
+                        <span class="bg-amber-700 text-white font-black px-4 py-1.5 rounded-full text-sm shadow">PERINGKAT KETIGA (#3)</span>
+                        <div class="relative inline-block">
+                            <div class="absolute inset-0 bg-amber-600 rounded-full blur-xl opacity-50 animate-spotlight"></div>
+                            <img src="${c3.fotoBase64}" class="w-36 h-36 sm:w-44 sm:h-44 object-cover rounded-full mx-auto relative border-4 border-amber-600 shadow-2xl">
+                        </div>
+                        <div>
+                            <h2 class="text-3xl sm:text-4xl font-black text-white">${c3.nama}</h2>
+                            <p class="text-slate-400 text-sm mt-1">Kelas ${c3.kelas.toUpperCase()} | No. Urut #${c3.nomor}</p>
+                        </div>
+                        <div class="inline-block bg-slate-900 border border-slate-800 px-6 py-3 rounded-2xl shadow-xl">
+                            <span class="text-xs text-slate-400 block">Perolehan Suara</span>
+                            <strong class="text-2xl text-ipmYellow font-black">${c3.suara} Suara (${pct3}%)</strong>
+                        </div>
+                    </div>
+                `;
+                annTop3State.timer = setTimeout(() => { if(!annTop3State.paused) runTop3Step(3, sorted, totalSuara, isTie); }, 6000);
+            } else if (step === 3) {
+                // Peringkat Kedua (Rank 2)
+                const c2 = sorted[1];
+                const pct2 = totalSuara > 0 ? ((c2.suara / totalSuara) * 100).toFixed(1) : 0;
+                playDrumRollSound();
+                body.innerHTML = `
+                    <div class="animate-fade-in space-y-6">
+                        <span class="bg-slate-300 text-slate-900 font-black px-4 py-1.5 rounded-full text-sm shadow">PERINGKAT KEDUA (#2)</span>
+                        <div class="relative inline-block">
+                            <div class="absolute inset-0 bg-slate-400 rounded-full blur-xl opacity-50 animate-spotlight"></div>
+                            <img src="${c2.fotoBase64}" class="w-36 h-36 sm:w-44 sm:h-44 object-cover rounded-full mx-auto relative border-4 border-slate-300 shadow-2xl">
+                        </div>
+                        <div>
+                            <h2 class="text-3xl sm:text-4xl font-black text-white">${c2.nama}</h2>
+                            <p class="text-slate-400 text-sm mt-1">Kelas ${c2.kelas.toUpperCase()} | No. Urut #${c2.nomor}</p>
+                        </div>
+                        <div class="inline-block bg-slate-900 border border-slate-800 px-6 py-3 rounded-2xl shadow-xl">
+                            <span class="text-xs text-slate-400 block">Perolehan Suara</span>
+                            <strong class="text-2xl text-ipmYellow font-black">${c2.suara} Suara (${pct2}%)</strong>
+                        </div>
+                    </div>
+                `;
+                annTop3State.timer = setTimeout(() => { if(!annTop3State.paused) runTop3Step(4, sorted, totalSuara, isTie); }, 6000);
+            } else if (step === 4) {
+                // Peringkat Pertama (Rank 1)
+                const c1 = sorted[0];
+                const pct1 = totalSuara > 0 ? ((c1.suara / totalSuara) * 100).toFixed(1) : 0;
+                playVictoryFanfare();
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+
+                body.innerHTML = `
+                    <div class="animate-fade-in space-y-6">
+                        <span class="bg-ipmYellow text-slate-950 font-black px-5 py-2 rounded-full text-base shadow-lg animate-bounce">PERINGKAT PERTAMA (#1) 🏆</span>
+                        ${isTie ? `<div class="bg-amber-500/20 text-amber-300 px-4 py-2 rounded-xl text-xs border border-amber-500 max-w-md mx-auto">PERHATIAN: Terdapat suara seri pada peringkat teratas!</div>` : ''}
+                        <div class="relative inline-block">
+                            <div class="absolute inset-0 bg-ipmYellow rounded-full blur-2xl opacity-60 animate-spotlight"></div>
+                            <img src="${c1.fotoBase64}" class="w-40 h-40 sm:w-52 sm:h-52 object-cover rounded-full mx-auto relative border-4 border-ipmYellow shadow-2xl">
+                        </div>
+                        <div>
+                            <h2 class="text-4xl sm:text-5xl font-black text-ipmYellow">${c1.nama}</h2>
+                            <p class="text-slate-300 text-sm mt-1">Kelas ${c1.kelas.toUpperCase()} | No. Urut #${c1.nomor}</p>
+                        </div>
+                        <div class="inline-block bg-slate-900 border border-ipmYellow/50 px-8 py-4 rounded-2xl shadow-2xl">
+                            <span class="text-xs text-slate-400 block">Perolehan Suara Tertinggi</span>
+                            <strong class="text-3xl text-ipmYellow font-black">${c1.suara} Suara (${pct1}%)</strong>
+                        </div>
+                    </div>
+                `;
+                appState.announcementStatus.top3 = 'selesai';
+                persistData();
+            }
+        }
+
+        function runCountdownAnimation(currentNum, callback) {
+            const body = document.getElementById('theater-body');
+            if (!body) return;
+            playCountdownTone(currentNum);
+
+            body.innerHTML = `
+                <div class="animate-fade-in space-y-4">
+                    <p class="text-slate-400 uppercase tracking-widest text-sm">Menuju Pengumuman Pemenang</p>
+                    <div class="text-7xl sm:text-9xl font-black text-ipmYellow animate-pulse">${currentNum}</div>
+                </div>
+            `;
+
+            if (currentNum > 1) {
+                annTop3State.timer = setTimeout(() => {
+                    if(!annTop3State.paused) runCountdownAnimation(currentNum - 1, callback);
+                }, 1000);
+            } else {
+                annTop3State.timer = setTimeout(() => {
+                    if(!annTop3State.paused) callback();
+                }, 1000);
+            }
+        }
+
+        window.top3AnnPauseResume = function() {
+            annTop3State.paused = !annTop3State.paused;
+            const btn = document.getElementById('btn-pause-resume');
+            if (annTop3State.paused) {
+                clearTimeout(annTop3State.timer);
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> Lanjutkan';
+                btn.className = "bg-green-600 hover:bg-green-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5";
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i> Jeda';
+                btn.className = "bg-amber-600 hover:bg-amber-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5";
+                const sorted = [...appState.candidates].sort((a, b) => b.suara - a.suara);
+                const totalSuara = appState.candidates.reduce((sum, c) => sum + c.suara, 0);
+                const isTie = sorted[0] && sorted[1] && sorted[0].suara === sorted[1].suara;
+                runTop3Step(annTop3State.step, sorted, totalSuara, isTie);
+            }
+        }
+
+        window.top3AnnRepeat = function() {
+            clearTimeout(annTop3State.timer);
+            const sorted = [...appState.candidates].sort((a, b) => b.suara - a.suara);
+            const totalSuara = appState.candidates.reduce((sum, c) => sum + c.suara, 0);
+            const isTie = sorted[0] && sorted[1] && sorted[0].suara === sorted[1].suara;
+            runTop3Step(0, sorted, totalSuara, isTie);
+        }
+
+        window.exitAnnouncementTheater = function() {
+            clearTimeout(annTop3State.timer);
+            if (document.fullscreenElement) document.exitFullscreen().catch(err => {});
+            renderAdminDashboard();
+        }
+
+        // ==========================================
+        // FITUR PELANTIKAN 3 INTI (CINEMATIC)
+        // ==========================================
+        window.confirmLaunchCoreAnnouncement = function() {
+            const { ketua, sekretaris, bendahara } = appState.coreOfficers;
+            if (!ketua || !sekretaris || !bendahara) {
+                showModal("Belum Lengkap", "Pastikan 3 jabatan inti (Ketua, Sekretaris, Bendahara) telah ditetapkan melalui Tab Hasil Live & Podium sebelum memulai pelantikan!");
+                return;
+            }
+
+            // Cek double jabatan
+            if (ketua === sekretaris || ketua === bendahara || sekretaris === bendahara) {
+                showModal("Kesalahan Penetapan", "Terdapat perangkapan jabatan inti oleh orang yang sama. Mohon periksa kembali penetapan admin.");
+                return;
+            }
+
+            showModal("Konfirmasi Pelantikan", "Apakah Anda siap memulai acara Cinematic Pelantikan 3 Pimpinan Inti PR IPM?", () => {
+                launchCoreAnnouncementTheater();
+            }, true, "Mulai Pelantikan");
+        }
+
+        let annCoreState = { step: 0, timer: null, paused: false };
+
+        window.launchCoreAnnouncementTheater = function() {
+            annCoreState = { step: 0, timer: null, paused: false };
+            const ketuaObj = appState.candidates.find(c => c.id === appState.coreOfficers.ketua);
+            const sekrObj = appState.candidates.find(c => c.id === appState.coreOfficers.sekretaris);
+            const bendObj = appState.candidates.find(c => c.id === appState.coreOfficers.bendahara);
+
+            const view = document.getElementById('app-view');
+            view.innerHTML = `
+                <div id="core-theater" class="fixed inset-0 z-50 bg-slate-950 text-white flex flex-col justify-between p-6 select-none overflow-y-auto">
+                    <div class="flex justify-between items-center max-w-7xl mx-auto w-full bg-slate-900/80 p-4 rounded-2xl border border-slate-800 backdrop-blur">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-ipmGreen text-white font-black px-3 py-1 rounded-lg text-xs">PELANTIKAN RESMI</div>
+                            <h2 class="font-bold text-sm sm:text-base">Pimpinan Inti PR IPM SMP Muhammadiyah Merauke</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="sound-toggle-btn-core" onclick="toggleSoundMute()" class="bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-volume-high text-green-500"></i> Suara Hidup</button>
+                            <button onclick="coreAnnPauseResume()" id="btn-pause-resume-core" class="bg-amber-600 hover:bg-amber-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-pause"></i> Jeda</button>
+                            <button onclick="coreAnnRepeat()" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-rotate-right"></i> Ulangi</button>
+                            <button onclick="toggleFullScreen()" class="bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition"><i class="fa-solid fa-expand"></i></button>
+                            <button onclick="exitAnnouncementTheater()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-xs font-bold transition"><i class="fa-solid fa-xmark"></i> Akhiri</button>
+                        </div>
+                    </div>
+                    <div id="core-theater-body" class="flex-grow flex flex-col items-center justify-center max-w-5xl mx-auto w-full my-6 text-center"></div>
+                    <div class="text-center text-xs text-slate-500">PR IPM SMP Muhammadiyah Merauke — Berkarya, Berintegritas, Berkemajuan</div>
+                </div>
+            `;
+
+            runCoreStep(0, ketuaObj, sekrObj, bendObj);
+        }
+
+        function runCoreStep(step, ketuaObj, sekrObj, bendObj) {
+            annCoreState.step = step;
+            const body = document.getElementById('core-theater-body');
+            if (!body) return;
+
+            if (step === 0) {
+                playBeep(440, 'sine', 0.5);
+                body.innerHTML = `
+                    <div class="animate-fade-in space-y-4">
+                        <div class="inline-block bg-ipmYellow text-slate-950 px-6 py-2 rounded-full font-black text-sm mb-2 shadow-lg">SIDANG PLENO & PELANTIKAN</div>
+                        <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight">PIMPINAN INTI PR IPM</h1>
+                        <p class="text-ipmYellow text-sm max-w-xl mx-auto">SMP Muhammadiyah Merauke</p>
+                    </div>
+                `;
+                annCoreState.timer = setTimeout(() => { if(!annCoreState.paused) runCoreStep(1, ketuaObj, sekrObj, bendObj); }, 4000);
+            } else if (step === 1) {
+                runCoreCountdown(3, () => { if(!annCoreState.paused) runCoreStep(2, ketuaObj, sekrObj, bendObj); });
+            } else if (step === 2) {
+                // Sekretaris Umum
+                playDrumRollSound();
+                body.innerHTML = `
+                    <div class="animate-fade-in space-y-6">
+                        <span class="bg-blue-600 text-white font-black px-5 py-2 rounded-full text-sm shadow">SEKRETARIS UMUM</span>
+                        <div class="relative inline-block">
+                            <div class="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-50 animate-spotlight"></div>
+                            <img src="${sekrObj.fotoBase64}" class="w-36 h-36 sm:w-44 sm:h-44 object-cover rounded-full mx-auto relative border-4 border-blue-500 shadow-2xl">
+                        </div>
+                        <div>
+                            <h2 class="text-3xl sm:text-4xl font-black text-white">${sekrObj.nama}</h2>
+                            <p class="text-slate-400 text-sm mt-1">Kelas ${sekrObj.kelas.toUpperCase()} | Sekretaris Umum PR IPM</p>
+                        </div>
+                    </div>
+                `;
+                annCoreState.timer = setTimeout(() => { if(!annCoreState.paused) runCoreStep(3, ketuaObj, sekrObj, bendObj); }, 6000);
+            } else if (step === 3) {
+                // Bendahara Umum
+                playDrumRollSound();
+                body.innerHTML = `
+                    <div class="animate-fade-in space-y-6">
+                        <span class="bg-ipmGreen text-white font-black px-5 py-2 rounded-full text-sm shadow">BENDAHARA UMUM</span>
+                        <div class="relative inline-block">
+                            <div class="absolute inset-0 bg-ipmGreen rounded-full blur-xl opacity-50 animate-spotlight"></div>
+                            <img src="${bendObj.fotoBase64}" class="w-36 h-36 sm:w-44 sm:h-44 object-cover rounded-full mx-auto relative border-4 border-ipmGreen shadow-2xl">
+                        </div>
+                        <div>
+                            <h2 class="text-3xl sm:text-4xl font-black text-white">${bendObj.nama}</h2>
+                            <p class="text-slate-400 text-sm mt-1">Kelas ${bendObj.kelas.toUpperCase()} | Bendahara Umum PR IPM</p>
+                        </div>
+                    </div>
+                `;
+                annCoreState.timer = setTimeout(() => { if(!annCoreState.paused) runCoreStep(4, ketuaObj, sekrObj, bendObj); }, 6000);
+            } else if (step === 4) {
+                // Ketua Umum (Puncak Acara)
+                playVictoryFanfare();
+                confetti({ particleCount: 250, spread: 120, origin: { y: 0.5 } });
+                body.innerHTML = `
+                    <div class="animate-fade-in space-y-6">
+                        <span class="bg-ipmYellow text-slate-950 font-black px-6 py-2.5 rounded-full text-base shadow-lg animate-bounce">KETUA UMUM PR IPM 🏆</span>
+                        <div class="relative inline-block">
+                            <div class="absolute inset-0 bg-ipmYellow rounded-full blur-2xl opacity-60 animate-spotlight"></div>
+                            <img src="${ketuaObj.fotoBase64}" class="w-44 h-44 sm:w-56 sm:h-56 object-cover rounded-full mx-auto relative border-4 border-ipmYellow shadow-2xl">
+                        </div>
+                        <div>
+                            <h2 class="text-4xl sm:text-6xl font-black text-ipmYellow">${ketuaObj.nama}</h2>
+                            <p class="text-slate-300 text-base mt-1">Kelas ${ketuaObj.kelas.toUpperCase()} | Ketua Umum terpilih</p>
+                        </div>
+                        <div class="bg-slate-900 border border-ipmYellow/40 px-6 py-3 rounded-2xl max-w-md mx-auto">
+                            <p class="text-xs text-ipmYellow font-bold">SELAMAT DAN SUKSES MENGEMBAN AMANAH</p>
+                        </div>
+                    </div>
+                `;
+                appState.announcementStatus.core = 'selesai';
+                persistData();
+            }
+        }
+
+        function runCoreCountdown(currentNum, callback) {
+            const body = document.getElementById('core-theater-body');
+            if (!body) return;
+            playCountdownTone(currentNum);
+            body.innerHTML = `
+                <div class="animate-fade-in space-y-4">
+                    <p class="text-slate-400 uppercase tracking-widest text-sm">Menuju Pengumuman Pimpinan Inti</p>
+                    <div class="text-7xl sm:text-9xl font-black text-ipmYellow animate-pulse">${currentNum}</div>
+                </div>
+            `;
+            if (currentNum > 1) {
+                annCoreState.timer = setTimeout(() => { if(!annCoreState.paused) runCoreCountdown(currentNum - 1, callback); }, 1000);
+            } else {
+                annCoreState.timer = setTimeout(() => { if(!annCoreState.paused) callback(); }, 1000);
+            }
+        }
+
+        window.coreAnnPauseResume = function() {
+            annCoreState.paused = !annCoreState.paused;
+            const btn = document.getElementById('btn-pause-resume-core');
+            if (annCoreState.paused) {
+                clearTimeout(annCoreState.timer);
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> Lanjutkan';
+                btn.className = "bg-green-600 hover:bg-green-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5";
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i> Jeda';
+                btn.className = "bg-amber-600 hover:bg-amber-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5";
+                const ketuaObj = appState.candidates.find(c => c.id === appState.coreOfficers.ketua);
+                const sekrObj = appState.candidates.find(c => c.id === appState.coreOfficers.sekretaris);
+                const bendObj = appState.candidates.find(c => c.id === appState.coreOfficers.bendahara);
+                runCoreStep(annCoreState.step, ketuaObj, sekrObj, bendObj);
+            }
+        }
+
+        window.coreAnnRepeat = function() {
+            clearTimeout(annCoreState.timer);
+            const ketuaObj = appState.candidates.find(c => c.id === appState.coreOfficers.ketua);
+            const sekrObj = appState.candidates.find(c => c.id === appState.coreOfficers.sekretaris);
+            const bendObj = appState.candidates.find(c => c.id === appState.coreOfficers.bendahara);
+            runCoreStep(0, ketuaObj, sekrObj, bendObj);
+        }
+
+        window.toggleFullScreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen().catch(err => {});
+            }
+        }
+
+        // ==========================================
+        // TAB 4: DATA PASLON & KOMPRESI FOTO CANVAS API
+        // ==========================================
+        function renderTabPaslon(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${appState.candidates.map(c => `
+                            <div class="glass-card rounded-2xl overflow-hidden shadow-sm p-5 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center gap-3 mb-4">
+                                        <img src="${c.fotoBase64}" class="w-16 h-16 object-cover rounded-full border-2 border-ipmGreen">
+                                        <div>
+                                            <span class="bg-ipmYellow text-slate-900 font-bold px-2 py-0.5 rounded text-xs">No. #${c.nomor}</span>
+                                            <h4 class="font-bold text-sm text-slate-900 mt-1">${c.nama}</h4>
+                                            <p class="text-xs text-slate-500">Kelas ${c.kelas.toUpperCase()}</p>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Visi & Misi</label>
+                                        <textarea id="visi-${c.id}" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-ipmGreen focus:outline-none" rows="3">${c.visi}</textarea>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Ganti Foto (Kompres Otomatis)</label>
+                                        <input type="file" id="file-${c.id}" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-ipmGreen/10 file:text-ipmGreen hover:file:bg-ipmGreen/20">
+                                    </div>
+                                </div>
+                                <button onclick="saveCandidateChanges('${c.id}')" class="w-full bg-ipmGreen hover:bg-ipmGreenDark text-white font-bold py-2 rounded-xl text-xs transition shadow">
+                                    Simpan Perubahan Paslon
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.saveCandidateChanges = function(id) {
+            const cand = appState.candidates.find(c => c.id === id);
+            const newVisi = document.getElementById(`visi-${id}`).value;
+            const fileInput = document.getElementById(`file-${id}`);
+            cand.visi = newVisi;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const maxWidth = 300, maxHeight = 400;
+                        let width = img.width, height = img.height;
+                        if (width > height) { if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; } }
+                        else { if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; } }
+                        canvas.width = width; canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        cand.fotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                        persistData();
+                        showModal("Sukses", `Data dan foto kandidat ${cand.nama} berhasil diperbarui!`);
+                        renderAdminDashboard();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                persistData();
+                showModal("Sukses", `Data visi misi kandidat ${cand.nama} berhasil diperbarui!`);
+                renderAdminDashboard();
+            }
+        }
+
+        // ==========================================
+        // TAB 5: DAFTAR HADIR (DPT & GENERATOR ACAK)
+        // ==========================================
+        function renderTabDpt(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="glass-card p-6 rounded-2xl shadow-sm flex flex-col xl:flex-row justify-between items-center gap-4">
+                        <div class="w-full xl:w-auto flex-grow max-w-md">
+                            <input type="text" id="dpt-search" oninput="filterDptTable()" placeholder="Cari ID Pemilih atau Nama..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-ipmGreen focus:outline-none">
+                        </div>
+                        <div class="flex flex-wrap gap-2.5">
+                            <button onclick="openGenerateDptModal()" class="bg-ipmYellow hover:bg-ipmYellowDark text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs transition shadow flex items-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate DPT Acak
+                            </button>
+                            <button onclick="openAddDptModal()" class="bg-ipmGreen hover:bg-ipmGreenDark text-white font-bold px-4 py-2.5 rounded-xl text-xs transition shadow flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus"></i> Tambah Pemilih DPT
+                            </button>
+                            <button onclick="downloadAllQrCards()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition shadow flex items-center gap-2">
+                                <i class="fa-solid fa-qrcode"></i> Cetak Semua Kartu QR
+                            </button>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                                        <th class="p-4">ID Pemilih</th>
+                                        <th class="p-4">Nama Pemilih</th>
+                                        <th class="p-4">Kategori</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4">Waktu Rekam</th>
+                                        <th class="p-4 text-center">Aksi QR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dpt-table-body" class="divide-y divide-slate-200">
+                                    ${renderDptRows(appState.dpt)}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.renderDptRows = function(list) {
+            return list.map(d => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 font-mono font-bold text-ipmGreenDark">${d.id}</td>
+                    <td class="p-4 font-medium text-slate-900">${d.nama}</td>
+                    <td class="p-4"><span class="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full text-xs font-semibold">${d.kategori}</span></td>
+                    <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${d.status === 'Sudah' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${d.status}</span></td>
+                    <td class="p-4 text-slate-500">${d.votedAt}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="showQrCard('${d.id}', '${d.nama}')" class="bg-ipmYellow/20 hover:bg-ipmYellow text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold transition"><i class="fa-solid fa-qrcode mr-1"></i> Kartu QR</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.filterDptTable = function() {
+            const query = document.getElementById('dpt-search').value.toLowerCase();
+            const filtered = appState.dpt.filter(d => d.id.toLowerCase().includes(query) || d.nama.toLowerCase().includes(query));
+            document.getElementById('dpt-table-body').innerHTML = renderDptRows(filtered);
+        }
+
+        window.openAddDptModal = function() {
+            showModal("Tambah Pemilih DPT Baru", `
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">ID Pemilih / NIS</label>
+                        <input type="text" id="new-dpt-id" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm uppercase" placeholder="Contoh: IPM005">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap</label>
+                        <input type="text" id="new-dpt-nama" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" placeholder="Nama siswa/pendidik">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Kategori</label>
+                        <select id="new-dpt-kategori" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white">
+                            <option value="Siswa">Siswa</option>
+                            <option value="Pendidik">Pendidik</option>
+                        </select>
+                    </div>
+                </div>
+            `, () => {
+                const id = document.getElementById('new-dpt-id').value.trim().toUpperCase();
+                const nama = document.getElementById('new-dpt-nama').value.trim();
+                const kategori = document.getElementById('new-dpt-kategori').value;
+                if (!id || !nama) { showModal("Error", "ID dan Nama pemilih wajib diisi!"); return; }
+                if (appState.dpt.some(d => d.id === id)) { showModal("Error", "ID Pemilih sudah terdaftar!"); return; }
+                appState.dpt.push({ id, nama, kategori, status: 'Belum', votedAt: '-' });
+                persistData();
+                renderAdminDashboard();
+                showModal("Sukses", `Pemilih ${nama} berhasil ditambahkan.`);
+            }, true, "Tambah Pemilih");
+        }
+
+        window.openGenerateDptModal = function() {
+            showModal("Generate Acak DPT Pemilih", `
+                <div class="space-y-3">
+                    <p class="text-xs text-slate-600">Fitur ini membuat data pemilih DPT acak secara instan.</p>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Jumlah Pemilih</label>
+                        <input type="number" id="gen-count" value="30" min="1" max="200" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm">
+                    </div>
+                </div>
+            `, () => {
+                const countVal = parseInt(document.getElementById('gen-count').value) || 30;
+                const firstNames = ["Ahmad", "Muhammad", "Siti", "Nur", "Fauzan", "Rizki", "Putri", "Aisyah", "Zaki", "Nabila", "Dimas", "Aurel", "Farhan", "Dewi"];
+                const lastNames = ["Pratama", "Ramadhan", "Hidayat", "Saputra", "Wahyudi", "Kusuma", "Lestari", "Anggraini", "Santoso", "Wijaya"];
+                const classes = ["7a", "7b", "8a", "8b", "8e", "8f", "9a", "9b"];
+                let addedCount = 0;
+                let seed = Math.floor(Math.random() * 9000) + 100;
+
+                for (let i = 0; i < countVal; i++) {
+                    const fName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                    const lName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                    const cls = classes[Math.floor(Math.random() * classes.length)];
+                    const genId = `IPM${String(seed + i).padStart(3, '0')}`;
+                    if (!appState.dpt.some(d => d.id === genId)) {
+                        appState.dpt.push({ id: genId, nama: `${fName} ${lName} (${cls.toUpperCase()})`, kategori: 'Siswa', status: 'Belum', votedAt: '-' });
+                        addedCount++;
+                    }
+                }
+                persistData();
+                renderAdminDashboard();
+                showModal("Sukses", `Berhasil membuat ${addedCount} data pemilih DPT baru.`);
+            }, true, "Generate Sekarang");
+        }
+
+        window.showQrCard = function(id, nama) {
+            showModal(`Kartu Pemilih: ${nama}`, `
+                <div class="text-center space-y-3">
+                    <div id="modal-qrcode" class="flex justify-center p-4 bg-white border border-slate-200 rounded-2xl shadow-inner inline-block"></div>
+                    <div>
+                        <h4 class="font-bold text-base text-slate-950">${nama}</h4>
+                        <p class="text-xs font-mono text-ipmGreenDark font-bold">ID: ${id}</p>
+                    </div>
+                </div>
+            `, null, false, "Tutup");
+
+            setTimeout(() => {
+                const qrContainer = document.getElementById('modal-qrcode');
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, { text: id, width: 180, height: 180, colorDark: "#138A36", colorLight: "#ffffff" });
+            }, 200);
+        }
+
+        window.downloadAllQrCards = function() {
+            let printWindow = window.open('', '_blank');
+            let html = `<html><head><title>Cetak Kartu QR DPT</title><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script><style>body{font-family:sans-serif;padding:20px}.card{border:2px dashed #138A36;padding:15px;margin:10px;display:inline-block;width:220px;text-align:center;border-radius:10px}@media print{button{display:none}}</style></head><body>`;
+            html += `<h2>Kartu QR Pemilih DPT - IPM Merauke</h2><button onclick="window.print()" style="padding:10px 20px;background:#138A36;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-bottom:20px">Cetak Sekarang</button><div style="display:flex;flex-wrap:wrap;gap:15px">`;
+            appState.dpt.forEach(d => {
+                html += `<div class="card"><h4>${d.nama}</h4><p style="font-family:monospace;font-weight:bold;color:#138A36">ID: ${d.id}</p><div id="qr-${d.id}" style="display:inline-block;margin:10px 0"></div></div>`;
+            });
+            html += `</div><script>`;
+            appState.dpt.forEach(d => {
+                html += `new QRCode(document.getElementById("qr-${d.id}"), { text: "${d.id}", width: 120, height: 120 });`;
+            });
+            html += `<\/script></body></html>`;
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        // ==========================================
+        // TAB 6: PENGATURAN & BAP
+        // ==========================================
+        function renderTabSettings(container) {
+            const currentEnd = new Date(appState.settings.endTime).toISOString().slice(0, 16);
+            container.innerHTML = `
+                <div class="space-y-6 max-w-2xl">
+                    <div class="glass-card p-6 rounded-2xl shadow-sm space-y-4">
+                        <h3 class="font-bold text-base text-slate-900"><i class="fa-solid fa-clock mr-1 text-ipmGreen"></i> Waktu Berakhir Pemilihan</h3>
+                        <div>
+                            <input type="datetime-local" id="setting-datetime" value="${currentEnd}" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-ipmGreen focus:outline-none">
+                        </div>
+                        <button onclick="saveDatetimeSetting()" class="bg-ipmGreen hover:bg-ipmGreenDark text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow">Perbarui Waktu</button>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl shadow-sm space-y-4">
+                        <h3 class="font-bold text-base text-slate-900"><i class="fa-solid fa-file-lines mr-1 text-ipmYellow"></i> Ekspor Berita Acara (BAP) .txt</h3>
+                        <button onclick="exportBapTxt()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> Unduh Berita Acara (.txt)
+                        </button>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl shadow-sm border border-red-200 bg-red-50/30 space-y-4">
+                        <h3 class="font-bold text-base text-red-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Reset Seluruh Database</h3>
+                        <button onclick="promptResetDatabase()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow flex items-center gap-2">
+                            <i class="fa-solid fa-trash-can"></i> Reset Database (Ketik HAPUS)
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.saveDatetimeSetting = function() {
+            const val = document.getElementById('setting-datetime').value;
+            if (!val) return;
+            appState.settings.endTime = new Date(val).toISOString();
+            persistData();
+            startCountdownTimer();
+            showModal("Sukses", "Batas waktu pemilihan diperbarui.");
+        }
+
+        window.exportBapTxt = function() {
+            const totalVoters = appState.dpt.length;
+            const votedCount = appState.dpt.filter(d => d.status === 'Sudah').length;
+            const sorted = [...appState.candidates].sort((a, b) => b.suara - a.suara);
+
+            let txt = `BERITA ACARA E-VOTING MUSYRAN PR IPM SMP MUHAMMADIYAH MERAUKE\nWaktu: ${new Date().toLocaleString()}\n\n`;
+            txt += `Total DPT: ${totalVoters} | Suara Masuk: ${votedCount}\n\nPEROLEHAN SUARA:\n`;
+            sorted.forEach((c, i) => { txt += `${i+1}. ${c.nama} - ${c.suara} Suara\n`; });
+
+            const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `BAP_Musyran_IPM_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        window.promptResetDatabase = function() {
+            showModal("Konfirmasi Reset", `
+                <p class="text-red-600 font-bold mb-2">PERINGATAN!</p>
+                <p class="text-xs text-slate-700 mb-4">Ketik kata <strong class="text-red-600">HAPUS</strong> untuk mereset seluruh database suara:</p>
+            `, () => {
+                appState.candidates.forEach(c => c.suara = 0);
+                appState.dpt.forEach(d => { d.status = 'Belum'; d.votedAt = '-'; });
+                persistData();
+                renderAdminDashboard();
+                showModal("Reset Berhasil", "Database dikembalikan ke awal.");
+            }, true, "Reset Sekarang", {
+                label: "Ketik HAPUS",
+                placeholder: "HAPUS",
+                validator: (val) => {
+                    if (val !== "HAPUS") { showModal("Gagal", "Konfirmasi gagal!"); return false; }
+                    return true;
+                }
+            });
+        }
+
+        window.onload = function() {
+            initData();
+        };
+    </script>
+</body>
+</html>
